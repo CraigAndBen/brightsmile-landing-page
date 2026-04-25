@@ -319,7 +319,7 @@ const Index = () => {
 
       {/* Appointment + Contact */}
       <section id="appointment" className="py-20 md:py-28">
-        <div className="container grid lg:grid-cols-2 gap-12">
+        <div id="contact" className="container grid lg:grid-cols-2 gap-12">
           <Reveal>
             <span className="text-sm font-semibold text-primary uppercase tracking-wider">Book Now</span>
             <h2 className="mt-3 font-display text-4xl md:text-5xl font-bold text-primary-deep">
@@ -354,7 +354,7 @@ const Index = () => {
             </form>
           </Reveal>
 
-          <Reveal delay={150} id="contact">
+          <Reveal delay={150}>
             <span className="text-sm font-semibold text-primary uppercase tracking-wider">Contact</span>
             <h2 className="mt-3 font-display text-4xl md:text-5xl font-bold text-primary-deep">
               Get in touch
