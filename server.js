@@ -5,11 +5,6 @@ import dotenv from 'dotenv';
 import { trace } from 'node:console';
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log("Server running on port", PORT);
-});
-
-
 dotenv.config({ path: '.env.local' });
 
 const app = express();
