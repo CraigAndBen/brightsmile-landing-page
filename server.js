@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.post('/contact', async (req, res) => {
+app.post('/api/contact', async (req, res) => {
     const { name, email, phone, date } = req.body;
 
     const readableDate = new Date(date).toLocaleDateString('en-US', {

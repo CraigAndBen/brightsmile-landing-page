@@ -113,9 +113,10 @@ const Index = () => {
     const form = e.currentTarget;
     const formDataObj = new FormData(form);
     const data = Object.fromEntries(formDataObj.entries());
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     try {
-      const res = await fetch('http://localhost:3000/contact', {
+      const res = await fetch(`${API_URL}/api/contact`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",
