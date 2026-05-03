@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Reveal } from "@/components/Reveal";
 import { toast } from "sonner";
 import dentistHero from "@/assets/dentist-hero.jpg";
+import { json } from "stream/consumers";
 
 const navLinks = [
   { href: "#about", label: "About" },
@@ -103,14 +104,40 @@ const testimonials = [
 
 const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast.success("Appointment request sent!", {
-      description: "We'll reach out within 24 hours to confirm.",
-    });
-    (e.target as HTMLFormElement).reset();
-  };
+    setIsLoading(true);
+
+    const form = e.currentTarget;
+    const formDataObj = new FormData(form);
+    const data = Object.fromEntries(formDataObj.entries());
+
+    try {
+      const res = await fetch('http://localhost:3000/contact', {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error('Failed to send message')
+
+      toast.success("Appointment request sent!", {
+        description: "We'll reach out within 24 hours to confirm.",
+      });
+
+      form.reset();
+    } catch (error) {
+      toast.error("Something went wrong", {
+        description: "Please try again later.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -144,7 +171,7 @@ const Index = () => {
             <Button
               className="rounded-full gradient-hero border-0 shadow-soft hover:shadow-glow transition-all"
               onClick={() => {
-                (window as any).Calendly.  initPopupWidget({
+                (window as any).Calendly.initPopupWidget({
                   url: "https://calendly.com/craigbencadag/face-to-face-clinic-checkup",
                 });
               }}
@@ -183,8 +210,9 @@ const Index = () => {
                   className="w-full rounded-full gradient-hero border-0"
                   onClick={() => {
                     setMenuOpen(false);
-                    (window as any).Calendly.initPopupWidget({  
-                      url: 'https://calendly.com/craigbencadag/face-to-face-clinic-checkup'})
+                    (window as any).Calendly.initPopupWidget({
+                      url: 'https://calendly.com/craigbencadag/face-to-face-clinic-checkup'
+                    })
                   }}
                 >
                   Book Appointment
@@ -457,72 +485,84 @@ const Index = () => {
             </p>
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              {/* Full Name */}
               <div>
-                <Label
-                  htmlFor="name"
-                  className="text-primary-deep font-semibold"
-                >
+                <Label htmlFor="name" className="text-primary-deep font-semibold">
                   Full Name
                 </Label>
                 <Input
                   id="name"
+                  name="name"
                   required
+                  disabled={isLoading} // Disable input while loading
                   placeholder="Jane Doe"
                   className="mt-2 h-12 rounded-xl bg-secondary/50 border-border"
                 />
               </div>
+
+              {/* Email & Phone Grid */}
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <Label
-                    htmlFor="email"
-                    className="text-primary-deep font-semibold"
-                  >
+                  <Label htmlFor="email" className="text-primary-deep font-semibold">
                     Email
                   </Label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     required
+                    disabled={isLoading}
                     placeholder="jane@email.com"
                     className="mt-2 h-12 rounded-xl bg-secondary/50 border-border"
                   />
                 </div>
                 <div>
-                  <Label
-                    htmlFor="phone"
-                    className="text-primary-deep font-semibold"
-                  >
+                  <Label htmlFor="phone" className="text-primary-deep font-semibold">
                     Phone
                   </Label>
                   <Input
                     id="phone"
+                    name="phone"
                     type="tel"
                     required
+                    disabled={isLoading}
                     placeholder="+1 (555) 000-0000"
                     className="mt-2 h-12 rounded-xl bg-secondary/50 border-border"
                   />
                 </div>
               </div>
+
+              {/* Preferred Date */}
               <div>
-                <Label
-                  htmlFor="date"
-                  className="text-primary-deep font-semibold"
-                >
+                <Label htmlFor="date" className="text-primary-deep font-semibold">
                   Preferred Date
                 </Label>
                 <Input
                   id="date"
+                  name="date"
                   type="date"
                   required
+                  disabled={isLoading}
                   className="mt-2 h-12 rounded-xl bg-secondary/50 border-border"
                 />
               </div>
+
+              {/* Submit Button with Loading State */}
               <Button
                 type="submit"
                 size="lg"
-                className="w-full h-12 rounded-xl gradient-hero border-0 shadow-soft hover:shadow-glow transition-all text-base"
+                disabled={isLoading} // Prevents multiple clicks
+                className={`w-full h-12 rounded-xl gradient-hero border-0 shadow-soft transition-all text-base ${isLoading ? "opacity-80 cursor-not-allowed" : "hover:shadow-glow"
+                  }`}
               >
-                Request Appointment
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  "Request Appointment"
+                )}
               </Button>
             </form>
           </Reveal>
