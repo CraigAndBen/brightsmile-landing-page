@@ -1,84 +1,84 @@
-import express from 'express';
-import nodemailer from 'nodemailer';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import { trace } from 'node:console';
-const PORT = process.env.PORT || 5000;
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { Resend } from "resend";
 
-dotenv.config({ path: '.env.local' });
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
 app.use(cors({
-    origin: "https://brightsmile-dental.craigben.com",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+  origin: "https://brightsmile-dental.craigben.com",
+  methods: ["GET", "POST"],
+  credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.post('/api/contact', async (req, res) => {
+// Resend setup
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Contact route
+app.post("/api/contact", async (req, res) => {
+  try {
     const { name, email, phone, date } = req.body;
 
-    const readableDate = new Date(date).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
-
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: process.env.EMAIL_USER,
-        replyTo: email, // VERY IMPORTANT: Allows you to click 'Reply' to the customer
-        subject: `📅 New Appointment: ${name}`,
-        text: `
-        🌟 You have a new appointment request from your landing page!
-
-        --------------------------------------------------
-        CUSTOMER DETAILS
-        --------------------------------------------------
-        👤 Name:     ${name}
-        📧 Email:    ${email}
-        📞 Phone:    ${phone}
-
-        --------------------------------------------------
-        APPOINTMENT DETAILS
-        --------------------------------------------------
-        📅 Date:     ${readableDate}
-        📝 Note:      New appointment requested via BrightSmile website.
-
-        --------------------------------------------------
-        Next Step: 
-        Reach out to the customer at ${phone} or reply directly to this email.
-    `
-    };
-
-    const customerOptions = {
-        from: process.env.EMAIL_USER,
-        to: email, // The customer's email
-        subject: "Appointment Received - BrightSmile",
-        text: `Hi ${name}, we've received your request for ${readableDate}. We will call you shortly at ${phone} to confirm!`
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        await transporter.sendMail(customerOptions);
-        res.send("message sent successfully!");
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Error sending messages");
-
+    if (!name || !email || !phone || !date) {
+      return res.status(400).json({ error: "Missing fields" });
     }
+
+    const readableDate = new Date(date).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+
+    // EMAIL TO YOU (admin)
+    await resend.emails.send({
+      from: "BrightSmile <onboarding@resend.dev>",
+      to: "your-email@gmail.com", // change this
+      subject: `📅 New Appointment: ${name}`,
+      html: `
+        <h2>New Appointment Request</h2>
+        <p><b>Name:</b> ${name}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Phone:</b> ${phone}</p>
+        <p><b>Date:</b> ${readableDate}</p>
+      `
+    });
+
+    // EMAIL TO CUSTOMER
+    await resend.emails.send({
+      from: "BrightSmile <onboarding@resend.dev>",
+      to: email,
+      subject: "Appointment Received - BrightSmile Dental",
+      html: `
+        <h3>Hi ${name},</h3>
+        <p>We received your appointment request for:</p>
+        <p><b>${readableDate}</b></p>
+        <p>We will contact you shortly at ${phone} to confirm.</p>
+        <br/>
+        <p>— BrightSmile Dental</p>
+      `
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Emails sent successfully"
+    });
+
+  } catch (err) {
+    console.log("Email error:", err);
+    return res.status(500).json({
+      error: "Failed to send email"
+    });
+  }
 });
 
 app.listen(PORT, () => {
-    console.log("Server running on port", PORT);
+  console.log("Server running on port", PORT);
 });
