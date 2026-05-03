@@ -115,7 +115,7 @@ const Index = () => {
     const data = Object.fromEntries(formDataObj.entries());
 
     try {
-      const res = await fetch(`/api/contact`, {
+      const res = await fetch(`https://brightsmile-landing-page.onrender.com/api/contact`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",
