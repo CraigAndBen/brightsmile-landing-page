@@ -3,6 +3,12 @@ import nodemailer from 'nodemailer';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { trace } from 'node:console';
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log("Server running on port", PORT);
+});
+
 
 dotenv.config({ path: '.env.local' });
 
@@ -74,4 +80,6 @@ app.post('/api/contact', async (req, res) => {
     }
 });
 
-app.listen(process.env.SERVER_PORT, () => console.log("Server running"));
+app.listen(PORT, () => {
+    console.log("Server running on port", PORT);
+});
