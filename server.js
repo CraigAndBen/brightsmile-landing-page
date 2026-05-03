@@ -37,10 +37,11 @@ app.post("/api/contact", async (req, res) => {
       day: "numeric"
     });
 
+
     // EMAIL TO YOU (admin)
-    await resend.emails.send({
+    const admin = await resend.emails.send({
       from: "BrightSmile <onboarding@resend.dev>",
-      to: "your-email@gmail.com", // change this
+      to: process.env.USER_EMAIL, // change this
       subject: `📅 New Appointment: ${name}`,
       html: `
         <h2>New Appointment Request</h2>
@@ -52,8 +53,8 @@ app.post("/api/contact", async (req, res) => {
     });
 
     // EMAIL TO CUSTOMER
-    await resend.emails.send({
-      from: "BrightSmile <onboarding@resend.dev>",
+    const customer = await resend.emails.send({
+      from: "BrightSmile <noreply@craigben.com>",
       to: email,
       subject: "Appointment Received - BrightSmile Dental",
       html: `
